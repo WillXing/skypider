@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 const axios = require('axios');
+const cron = require('node-cron');
+const pug = require('pug');
 
 async function crawlPostInfo(page) {
   return await page.evaluate(() => {
@@ -19,27 +21,13 @@ async function crawlPostInfo(page) {
 }
 
 
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto('http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=1');
-
-  const pageMax = await page.evaluate(() => {
-    return document.querySelector('#pgt > div > a.last').innerHTML.split(' ')[1] * 1;
-  });
-
-  const allPosts = [];
-  for (let pageNum = 1; pageNum <= 20; pageNum++) {
-    await page.goto(`http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=${pageNum}`);
-    allPosts.push(...await crawlPostInfo(page));
-  }
-
+async function crawlPostDetailAndSendToWildDog(allPosts, page) {
   await axios.delete('https://wd3796420644tzvndi.wilddogio.com/jobs.json');
 
   for (let i = 0; i < allPosts.length; i++) {
     let post = allPosts[i];
 
-    if(post.link) {
+    if (post.link) {
       await page.goto(post.link);
     } else {
       break;
@@ -63,6 +51,49 @@ async function crawlPostInfo(page) {
     Object.assign(post, additionalInfo);
     await axios.post('https://wd3796420644tzvndi.wilddogio.com/jobs.json', post);
   }
+}
 
-  await browser.close();
+
+
+cron.schedule('0 */2 * * *', () => {
+  (async () => {
+    console.log('Start to crawl');
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.goto('http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=1');
+
+    const pageMax = await page.evaluate(() => {
+      return document.querySelector('#pgt > div > a.last').innerHTML.split(' ')[1] * 1;
+    });
+
+    const allPosts = [];
+    for (let pageNum = 1; pageNum <= 20; pageNum++) {
+      await page.goto(`http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=${pageNum}`);
+      allPosts.push(...await crawlPostInfo(page));
+    }
+
+    await crawlPostDetailAndSendToWildDog(allPosts, page);
+
+    await browser.close();
+
+    console.log('Finished crawl');
+  })();
+});
+
+const express = require('express');
+const app = express();
+const port = 80;
+
+(async () => {
+  const response = await axios.get('https://wd3796420644tzvndi.wilddogio.com/jobs.json');
+  const jobs = response.data;
+  app.set('view engine', 'pug');
+
+  app.get('/', function (req, res) {
+    res.render('template', { jobs })
+  });
+
+  app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 })();
+
