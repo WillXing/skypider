@@ -1,0 +1,30 @@
+table {
+    background-color: #EEEEEE;
+    text-align: left;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+table td, table th {
+    padding: 3px 2px;
+}
+table tbody td {
+    font-size: 13px;
+    width: 1px;
+    white-space: nowrap;
+    border-bottom: 1px dashed;
+}
+table tbody tr:hover {
+    background: #a1cdca
+}
+table thead {
+    background: #73598E;
+}
+table thead th {
+    font-size: 15px;
+    font-weight: bold;
+    color: #FFFFFF;
+    border-left: 2px solid #D0E4F5;
+}
+table thead th:first-child {
+    border-left: none;
+}

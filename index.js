@@ -54,43 +54,48 @@ async function crawlPostDetailAndSendToWildDog(allPosts, page) {
 }
 
 
+async function crawlData() {
+  console.log('Start to crawl');
 
-cron.schedule('0 */2 * * *', () => {
-  (async () => {
-    console.log('Start to crawl');
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=1');
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto('http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=1');
+  const pageMax = await page.evaluate(() => {
+    return document.querySelector('#pgt > div > a.last').innerHTML.split(' ')[1] * 1;
+  });
 
-    const pageMax = await page.evaluate(() => {
-      return document.querySelector('#pgt > div > a.last').innerHTML.split(' ')[1] * 1;
-    });
+  const allPosts = [];
+  for (let pageNum = 1; pageNum <= 20; pageNum++) {
+    await page.goto(`http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=${pageNum}`);
+    allPosts.push(...await crawlPostInfo(page));
+  }
 
-    const allPosts = [];
-    for (let pageNum = 1; pageNum <= 20; pageNum++) {
-      await page.goto(`http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=${pageNum}`);
-      allPosts.push(...await crawlPostInfo(page));
-    }
+  await crawlPostDetailAndSendToWildDog(allPosts, page);
 
-    await crawlPostDetailAndSendToWildDog(allPosts, page);
+  await browser.close();
 
-    await browser.close();
+  console.log('Finished crawl');
+}
 
-    console.log('Finished crawl');
-  })();
+cron.schedule('*/30 * * * *', async () => {
+  await crawlData();
 });
 
+(async () => await crawlData())();
+
 const express = require('express');
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
 (async () => {
-  const response = await axios.get('https://wd3796420644tzvndi.wilddogio.com/jobs.json');
-  const jobs = response.data;
-  app.set('view engine', 'pug');
 
-  app.get('/', function (req, res) {
+  app.set('view engine', 'pug');
+  app.use("/static", express.static(path.join(__dirname, "public")));
+  app.get('/', async (req, res) => {
+    const response = await axios.get('https://wd3796420644tzvndi.wilddogio.com/jobs.json');
+    const jobs = response.data;
     res.render('template', { jobs })
   });
 

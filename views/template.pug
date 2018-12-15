@@ -1,32 +1,33 @@
+doctype html
+html
+  head
+    link(href='/static/main.css', rel='stylesheet')
 body
-  style(type='text/css').
-    table {
-      table-layout: fixed;
-    }
-    td {
-      width: 1px;
-      white-space: nowrap;
-    }
   table
-    tr
-      th Date
-      th Name
-      th Position
-      th Company Name
-      th Email
-      th WeChat
-      th Tel
-      th Salary
-      th Type
-    each val, index in jobs
+    thead
       tr
-        td= val.date
-        td
-          a(href=val.link)=val.name
-        td= val.position
-        td= val.companyName
-        td= val.email
-        td= val.wechat
-        td= val.tel
-        td= val.salary
-        td= val.type
+        th Num
+        th Date
+        th Name
+        th Position
+        th Company Name
+        th Email
+        th WeChat
+        th Tel
+        th Salary
+        th Type
+    tbody
+      -var num = 0
+      each val, index in jobs
+        tr
+          td= ++num
+          td= val.date
+          td
+            a(href=val.link)=val.name
+          td= val.position
+          td= val.companyName
+          td= val.email
+          td= val.wechat
+          td= val.tel
+          td= val.salary
+          td= val.type
