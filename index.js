@@ -83,7 +83,7 @@ cron.schedule('0 */2 * * *', () => {
 
 const express = require('express');
 const app = express();
-const port = 3030;
+const port = process.env.PORT || 3000;
 
 (async () => {
   const response = await axios.get('https://wd3796420644tzvndi.wilddogio.com/jobs.json');
