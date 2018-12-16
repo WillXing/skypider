@@ -14,7 +14,6 @@ async function crawlPostInfo(page) {
           date,
           link: (post.querySelector('th .xst') || {}).href
         };
-      } else {
       }
     }).filter(post => !!post);
   });
@@ -57,7 +56,10 @@ async function crawlPostDetailAndSendToWildDog(allPosts, page) {
 async function crawlData() {
   console.log('Start to crawl');
 
-  const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   await page.goto('http://bbs.skykiwi.com/forum.php?mod=forumdisplay&fid=55&page=1');
 
