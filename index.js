@@ -7,8 +7,9 @@ async function crawlPostInfo(page) {
   return await page.evaluate(() => {
     return [...document.querySelectorAll('#moderate > table tbody > tr')].map(post => {
       const date = (post.querySelector('td:nth-child(3) > em > span') || post.querySelector('td:nth-child(3) > em') || {}).innerHTML;
-      if (date === `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate() - 1}`
-        || date === `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`) {
+      const currentTime = new Date().getTimezoneOffset() === 0 ? new Date(new Date().getTime() + (13*60*60*1000)) : new Date();
+      if (date === `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate() - 1}`
+        || date === `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`) {
         return {
           name: (post.querySelector('th .xst') || {}).innerHTML,
           date,
